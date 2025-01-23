@@ -41,7 +41,7 @@ fun ImageContent(
 ) {
     val state = applicationState.imgPreviewState
 
-    val draggableState = rememberDraggableListState(
+    state.draggableState = rememberDraggableListState(
         onMove = { fromIndex, toIndex ->
             applicationState.reorderPicture(fromIndex, toIndex)
         }
@@ -131,11 +131,11 @@ fun ImageContent(
                         .weight(1f)
                 ) {
                     LazyColumn(
-                        state = draggableState.listState,
+                        state = state.draggableState.listState,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         draggableItemsIndexed(
-                            state = draggableState,
+                            state = state.draggableState,
                             items = applicationState.pictureFileList,
                             key = { _, item ->  item.file.path }
                         ) { index, pictureModel, isDragging ->
@@ -208,7 +208,7 @@ fun ImageContent(
                                     if (state.isReorderAble) {
                                         Icon(
                                             modifier = Modifier.dragHandle(
-                                                state = draggableState,
+                                                state = state.draggableState,
                                                 key = pictureModel.file.path
                                             ),
                                             imageVector = Icons.Default.DragHandle,
@@ -224,7 +224,7 @@ fun ImageContent(
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                         adapter = rememberScrollbarAdapter(
-                            scrollState = draggableState.listState
+                            scrollState = state.draggableState.listState
                         )
                     )
                 }

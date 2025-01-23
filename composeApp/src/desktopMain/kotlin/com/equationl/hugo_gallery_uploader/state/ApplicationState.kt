@@ -7,7 +7,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.nativeKeyCode
+import androidx.compose.ui.input.key.type
 import androidx.datastore.preferences.core.edit
 import com.equationl.hugo_gallery_uploader.constant.DataKey
 import com.equationl.hugo_gallery_uploader.constant.DefaultValue
@@ -36,7 +40,6 @@ fun rememberApplicationState(
 
 
 class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollState) {
-    lateinit var window: ComposeWindow
 
     val controlState = ControlState()
     val imgPreviewState = ImgPreviewState()
@@ -50,6 +53,60 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         private set
     var isDialogCloseable by mutableStateOf(true)
         private set
+
+
+    fun onKeyEvent(keyEvent: KeyEvent): Boolean {
+
+        if (keyEvent.type == KeyEventType.KeyDown) {
+            when (keyEvent.key.nativeKeyCode) {
+                37 -> { // 向左
+                    minImgIndex()
+                }
+
+                38 -> { // 向上箭头
+                    minImgIndex()
+                }
+
+                39 -> { // 向右
+                    plusImgIndex()
+                }
+
+                40 -> { // 向下箭头
+                    plusImgIndex()
+                }
+            }
+        }
+
+        return false
+    }
+
+    private fun minImgIndex() {
+        if (pictureFileList.isNotEmpty()) {
+            if (imgPreviewState.showImageIndex == 0) {
+                imgPreviewState.showImageIndex = pictureFileList.lastIndex
+            } else {
+                imgPreviewState.showImageIndex--
+            }
+
+            scope.launch {
+                imgPreviewState.draggableState.listState.animateScrollToItem(imgPreviewState.showImageIndex)
+            }
+        }
+    }
+
+    private fun plusImgIndex() {
+        if (pictureFileList.isNotEmpty()) {
+            if (imgPreviewState.showImageIndex == pictureFileList.lastIndex) {
+                imgPreviewState.showImageIndex = 0
+            } else {
+                imgPreviewState.showImageIndex++
+            }
+
+            scope.launch {
+                imgPreviewState.draggableState.listState.animateScrollToItem(imgPreviewState.showImageIndex)
+            }
+        }
+    }
 
     fun onClickImgChoose() {
         showFileSelector(

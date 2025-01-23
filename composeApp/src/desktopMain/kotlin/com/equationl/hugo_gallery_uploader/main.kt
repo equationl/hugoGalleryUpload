@@ -23,17 +23,15 @@ fun main() = application {
         onCloseRequest = {
             exitApplication()
         },
-//        onKeyEvent = {
-//            applicationState.onKeyEvent(it)
-//        },
+        onKeyEvent = {
+            applicationState.onKeyEvent(it)
+        },
         state = rememberWindowState().apply {
             position = WindowPosition(Alignment.Center)
         }
     ) {
         // 设置窗口的最小尺寸
         window.minimumSize = Dimension(MinWindowSize.width.value.roundToInt(), MinWindowSize.height.value.roundToInt())
-
-        applicationState.window = window
 
         MainView(applicationState)
     }
