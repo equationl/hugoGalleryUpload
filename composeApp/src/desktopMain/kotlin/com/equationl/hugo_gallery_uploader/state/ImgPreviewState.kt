@@ -9,6 +9,5 @@ import androidx.compose.runtime.setValue
 class ImgPreviewState {
     var showImageIndex by mutableStateOf(0)
 
-    lateinit var lazyListState: LazyListState
-
+    var isReorderAble by mutableStateOf(false)
 }

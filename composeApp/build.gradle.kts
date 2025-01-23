@@ -25,6 +25,7 @@ kotlin {
             implementation("com.drewnoakes:metadata-extractor:2.18.0")
             implementation("com.huaweicloud:esdk-obs-java-bundle:3.24.12")
             implementation("androidx.datastore:datastore-preferences-core:1.1.2")
+            implementation("io.coil-kt.coil3:coil-compose:3.0.4")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

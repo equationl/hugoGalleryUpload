@@ -245,4 +245,10 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
             }
         }
     }
+
+    fun reorderPicture(fromIndex: Int, toIndex: Int) {
+        pictureFileList.apply {
+            add(toIndex, removeAt(fromIndex))
+        }
+    }
 }
