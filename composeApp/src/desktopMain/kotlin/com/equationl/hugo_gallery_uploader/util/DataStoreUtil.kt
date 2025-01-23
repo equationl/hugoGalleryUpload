@@ -5,8 +5,6 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import okio.Path.Companion.toPath
 
-// FIXME need confirm https://stackoverflow.com/questions/79177464/kmp-compose-multiplatform-datastore-not-working-on-jvm-release-build
-
 
 /**
  * Gets the singleton DataStore instance, creating it if necessary.

@@ -41,8 +41,22 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.equationl.hugo_gallery_uploader"
+            // https://stackoverflow.com/questions/79177464/kmp-compose-multiplatform-datastore-not-working-on-jvm-release-build
+            modules("jdk.unsupported")
+            modules("jdk.unsupported.desktop")
+
+            packageName = "Hugo Gallery Uploader"
             packageVersion = "1.0.0"
+            copyright = "© 2025 likehide.com. All rights reserved."
+            vendor = "equationl"
+
+            windows {
+                menuGroup = "Likehide"
+            }
+
+            macOS {
+                bundleID = "com.likehide.hugo_gallery_uploader"
+            }
         }
     }
 }
