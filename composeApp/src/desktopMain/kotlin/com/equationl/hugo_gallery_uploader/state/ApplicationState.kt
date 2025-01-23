@@ -198,7 +198,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         scope.launch(Dispatchers.IO) {
             showDialog("开始上传")
             var saveFolder = controlState.obsSaveFolder
-            if (!saveFolder.startsWith("/")) saveFolder = "/$saveFolder"
+            // if (!saveFolder.startsWith("/")) saveFolder = "/$saveFolder"
             if (controlState.isAutoCreateFolder) {
                 saveFolder = "$saveFolder/${SimpleDateFormat("yyyy/MM/dd").format(Date())}"
             }
