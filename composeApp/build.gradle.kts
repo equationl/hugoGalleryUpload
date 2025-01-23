@@ -44,8 +44,9 @@ compose.desktop {
             // https://stackoverflow.com/questions/79177464/kmp-compose-multiplatform-datastore-not-working-on-jvm-release-build
             modules("jdk.unsupported")
             modules("jdk.unsupported.desktop")
+            modules("java.management")
 
-            packageName = "Hugo Gallery Uploader"
+            packageName = "HugoGalleryUploader"
             packageVersion = "1.0.0"
             copyright = "© 2025 likehide.com. All rights reserved."
             vendor = "equationl"
