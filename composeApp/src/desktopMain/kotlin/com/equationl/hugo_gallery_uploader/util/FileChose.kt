@@ -10,20 +10,15 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import com.drew.metadata.exif.ExifSubIFDDirectory
 import com.drew.metadata.jpeg.JpegDirectory
+import com.drew.metadata.png.PngDirectory
 import com.equationl.hugo_gallery_uploader.model.PictureModel
-import java.awt.datatransfer.DataFlavor
-import java.awt.dnd.DnDConstants
-import java.awt.dnd.DropTarget
-import java.awt.dnd.DropTargetDropEvent
 import java.io.File
 import java.net.URI
-import java.util.Date
 import java.util.TimeZone
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.filechooser.FileNameExtensionFilter
-import kotlin.io.path.toPath
 
 
 val legalSuffixList: Array<String> = arrayOf("jpg", "jpeg", "png")
@@ -142,12 +137,17 @@ private fun File.toPictureModelFromFile(
 
         // png 没有 exif
         if (this.extension.lowercase() == "png") {
-            return PictureModel(this, title = this.name)
+            val pngDirectory = metadata.getFirstDirectoryOfType(PngDirectory::class.java)
+            val width = pngDirectory.getString(PngDirectory.TAG_IMAGE_WIDTH).toIntOrNull()
+            val height = pngDirectory.getString(PngDirectory.TAG_IMAGE_HEIGHT).toIntOrNull()
+
+            return PictureModel(this, title = this.name, imgWidth = width, imgHeight = height)
         }
         else {
             // 读取 exif 信息
             val subIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
             val ifdD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory::class.java)
+            val jpegDirectory = metadata.getFirstDirectoryOfType(JpegDirectory::class.java)
 
             val date = subIFDDirectory?.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, timeZone)
             val camera = "${ifdD0Directory?.getString(ExifIFD0Directory.TAG_MAKE) ?: ""} ${ifdD0Directory?.getString(ExifIFD0Directory.TAG_MODEL) ?: ""}"
@@ -156,6 +156,9 @@ private fun File.toPictureModelFromFile(
             val iso = subIFDDirectory?.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT) ?: ""
             val focalLength = subIFDDirectory?.getString(ExifSubIFDDirectory.TAG_FOCAL_LENGTH) ?: ""
             val lens = subIFDDirectory?.getString(ExifIFD0Directory.TAG_LENS_MODEL) ?: ""
+
+            val width = jpegDirectory.imageWidth
+            val height = jpegDirectory.imageHeight
 
             return PictureModel(
                 this,
@@ -166,7 +169,9 @@ private fun File.toPictureModelFromFile(
                 apertureText =  if (aperture.isNotBlank()) "f/${aperture}" else "",
                 isoText = if (iso.isNotBlank()) "ISO$iso" else "",
                 focalLengthText = if (focalLength.isNotBlank()) "${focalLength}mm" else "",
-                lensText = lens
+                lensText = lens,
+                imgWidth = width,
+                imgHeight = height
             )
         }
     } catch (tr: Throwable) {

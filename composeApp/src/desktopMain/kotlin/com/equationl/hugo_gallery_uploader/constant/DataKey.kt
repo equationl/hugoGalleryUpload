@@ -1,6 +1,7 @@
 package com.equationl.hugo_gallery_uploader.constant
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
 object DataKey {
@@ -11,4 +12,5 @@ object DataKey {
     val OBS_SECRET_KEY = stringPreferencesKey("OBS_SECRET_KEY")
     val OBS_ENDPOINT = stringPreferencesKey("OBS_ENDPOINT")
     val IS_AUTO_CREATE_FOLDER = booleanPreferencesKey("IS_AUTO_CREATE_FOLDER")
+    val ZOOM_MAX_HEIGHT = intPreferencesKey("ZOOM_MAX_HEIGHT")
 }

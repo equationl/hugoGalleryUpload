@@ -17,13 +17,14 @@ data class PictureModel(
     val exposureTimeText: String? = null,
     val apertureText: String? = null,
     var remoteUrl: String? = null,
+    var imgWidth: Int? = null,
+    var imgHeight: Int? = null
 ) {
     override fun equals(other: Any?): Boolean {
-        if (other is PictureModel) {
-            return file.path == other.file .path
-        }
-        else {
-            return false
+        return if (other is PictureModel) {
+            file.path == other.file .path
+        } else {
+            false
         }
     }
 
@@ -38,6 +39,8 @@ data class PictureModel(
         result = 31 * result + (exposureTimeText?.hashCode() ?: 0)
         result = 31 * result + (apertureText?.hashCode() ?: 0)
         result = 31 * result + (remoteUrl?.hashCode() ?: 0)
+        result = 31 * result + (imgWidth ?: 0)
+        result = 31 * result + (imgHeight ?: 0)
         return result
     }
 }

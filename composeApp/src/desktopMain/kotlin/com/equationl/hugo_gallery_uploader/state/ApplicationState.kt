@@ -187,6 +187,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 preferences[DataKey.OBS_ENDPOINT] = controlState.obsEndpoint
                 preferences[DataKey.OBS_SAVE_FOLDER] = controlState.obsSaveFolder
                 preferences[DataKey.IS_AUTO_CREATE_FOLDER] = controlState.isAutoCreateFolder
+                preferences[DataKey.ZOOM_MAX_HEIGHT] = controlState.maxHeight.getInputValue().text.toIntOrNull() ?: 0
             }
         }
 
@@ -239,6 +240,9 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         var imgPath = ""
         var imgDes = ""
         var imgTitle = ""
+        var imgThumbnailWidth = ""
+        var imgThumbnailHeight = ""
+
         for (pictureModel in pictureFileList) {
             if (pictureModel.remoteUrl.isNullOrBlank()) {
                 continue
@@ -260,6 +264,19 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 currentDes = ""
             }
 
+            var thumbnailHeight = pictureModel.imgHeight ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE
+            val thumbnailWidth: Int
+            if (thumbnailHeight > controlState.maxHeight.getInputValue().text.toInt()) {
+                thumbnailHeight = controlState.maxHeight.getInputValue().text.toInt()
+                thumbnailWidth = thumbnailHeight * (pictureModel.imgWidth ?: 1) / (pictureModel.imgHeight ?: 1)
+            }
+            else {
+                thumbnailWidth = pictureModel.imgWidth ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE
+            }
+
+            imgThumbnailWidth += "$thumbnailWidth,"
+            imgThumbnailHeight += "$thumbnailHeight,"
+
             imgPath += "${pictureModel.remoteUrl ?: ""},"
             imgTitle += "${pictureModel.title ?: ""},"
             imgDes += currentDes
@@ -274,12 +291,20 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         if (imgTitle.isNotEmpty() && imgTitle.last() == ',') {
             imgTitle = imgTitle.dropLast(1)
         }
+        if (imgThumbnailWidth.isNotEmpty() && imgThumbnailWidth.last() == ',') {
+            imgThumbnailWidth = imgThumbnailWidth.dropLast(1)
+        }
+        if (imgThumbnailHeight.isNotEmpty() && imgThumbnailHeight.last() == ',') {
+            imgThumbnailHeight = imgThumbnailHeight.dropLast(1)
+        }
 
         val codeResult = """
             {{<gallery 
             imgPath="$imgPath" 
             imgDes="$imgDes" 
-            imgTitle="$imgTitle">}}
+            imgTitle="$imgTitle"
+            imgWidth="$imgThumbnailWidth"
+            imgHeight="$imgThumbnailHeight">}}
         """.trimIndent()
 
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
@@ -299,6 +324,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 controlState.obsSaveFolder = preferences[DataKey.OBS_SAVE_FOLDER] ?: ""
                 controlState.isAutoCreateFolder = preferences[DataKey.IS_AUTO_CREATE_FOLDER] ?: false
                 controlState.timeZoneFilter.setValue(preferences[DataKey.TIME_ZONE] ?: DefaultValue.DEFAULT_TIME_ZONE)
+                controlState.maxHeight.setValue((preferences[DataKey.ZOOM_MAX_HEIGHT] ?: 0).toString())
             }
         }
     }

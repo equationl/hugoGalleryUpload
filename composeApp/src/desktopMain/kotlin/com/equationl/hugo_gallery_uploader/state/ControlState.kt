@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import com.equationl.hugo_gallery_uploader.constant.DefaultValue
 import com.equationl.hugo_gallery_uploader.util.FilterGMT
+import com.equationl.hugo_gallery_uploader.util.FilterNumber
 
 class ControlState {
     val timeZoneFilter = FilterGMT(TextFieldValue(DefaultValue.DEFAULT_TIME_ZONE))
@@ -15,6 +16,7 @@ class ControlState {
     var obsBucket by mutableStateOf("")
     var obsSaveFolder by mutableStateOf("")
     var isAutoCreateFolder by mutableStateOf(true)
+    var maxHeight = FilterNumber(defaultValue = TextFieldValue("0"))
 
     var isShowObsSetting by mutableStateOf(false)
 }
