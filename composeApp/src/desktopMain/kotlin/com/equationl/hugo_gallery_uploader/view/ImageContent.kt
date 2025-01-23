@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.CloudUpload
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -143,13 +145,26 @@ fun ImageContent(
                                         color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
                                     )
 
-                                    Icon(
-                                        imageVector = Icons.Rounded.Delete,
-                                        contentDescription = null,
-                                        modifier = Modifier.clickable {
-                                            applicationState.onDelImg(index)
-                                        }.weight(0.1f)
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.End,
+                                        modifier = Modifier.weight(0.1f)
+                                    ) {
+                                        if (!pictureModel.remoteUrl.isNullOrBlank()) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.CloudUpload,
+                                                contentDescription = null,
+                                            )
+                                        }
+
+                                        Icon(
+                                            imageVector = Icons.Rounded.Delete,
+                                            contentDescription = null,
+                                            modifier = Modifier.clickable {
+                                                applicationState.onDelImg(index)
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -1,7 +1,13 @@
 package com.equationl.hugo_gallery_uploader.util
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragData
+import androidx.compose.ui.draganddrop.dragData
 import com.drew.imaging.ImageMetadataReader
+import com.drew.metadata.exif.ExifIFD0Directory
 import com.drew.metadata.exif.ExifSubIFDDirectory
 import com.drew.metadata.jpeg.JpegDirectory
 import com.equationl.hugo_gallery_uploader.model.PictureModel
@@ -10,11 +16,15 @@ import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTarget
 import java.awt.dnd.DropTargetDropEvent
 import java.io.File
-import java.util.*
+import java.net.URI
+import java.util.Date
+import java.util.TimeZone
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.filechooser.FileNameExtensionFilter
+import kotlin.io.path.toPath
+
 
 val legalSuffixList: Array<String> = arrayOf("jpg", "jpeg", "png")
 
@@ -51,26 +61,20 @@ fun showFileSelector(
     }
 }
 
-fun dropFileTarget(
-    onFileDrop: (List<String>) -> Unit
-): DropTarget {
-    return object : DropTarget() {
-        override fun drop(event: DropTargetDropEvent) {
-
-            event.acceptDrop(DnDConstants.ACTION_REFERENCE)
-            val dataFlavors = event.transferable.transferDataFlavors
-            dataFlavors.forEach {
-                if (it == DataFlavor.javaFileListFlavor) {
-                    val list = event.transferable.getTransferData(it) as List<*>
-
-                    val pathList = mutableListOf<String>()
-                    list.forEach { filePath ->
-                        pathList.add(filePath.toString())
-                    }
-                    onFileDrop(pathList)
-                }
+@OptIn(ExperimentalComposeUiApi::class)
+fun dropAndDragTarget(onFileDrop: (List<String>) -> Unit): DragAndDropTarget {
+    return object : DragAndDropTarget {
+        override fun onDrop(event: DragAndDropEvent): Boolean {
+            val data = event.dragData()
+            if (data is DragData.FilesList) {
+                val rawFileList = data.readFiles().map { URI(it).path }
+                onFileDrop(rawFileList)
+                return true
             }
-            event.dropComplete(true)
+            else {
+                println("Not support drag data: ${data::class.java.simpleName}")
+                return false
+            }
         }
     }
 }
@@ -142,21 +146,28 @@ private fun File.toPictureModelFromFile(
         }
         else {
             // 读取 exif 信息
-            val exifDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
-            val date = exifDirectory?.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, timeZone)
+            val subIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
+            val ifdD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory::class.java)
 
-            val jpegDirectory = metadata.getFirstDirectoryOfType(JpegDirectory::class.java)
-            if (jpegDirectory == null) {
-                onProgress?.invoke("获取 [${this}] 信息出错2： 无法读取到任何元数据")
-                return PictureModel(this, title = this.name)
-            }
-            else {
-                // TODO 读取图片信息
-                return PictureModel(
-                    this,
-                    title = this.name
-                )
-            }
+            val date = subIFDDirectory?.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, timeZone)
+            val camera = "${ifdD0Directory?.getString(ExifIFD0Directory.TAG_MAKE) ?: ""} ${ifdD0Directory?.getString(ExifIFD0Directory.TAG_MODEL) ?: ""}"
+            val exposureTime = subIFDDirectory?.getString(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) ?: ""
+            val aperture = subIFDDirectory?.getString(ExifSubIFDDirectory.TAG_FNUMBER) ?: ""
+            val iso = subIFDDirectory?.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT) ?: ""
+            val focalLength = subIFDDirectory?.getString(ExifSubIFDDirectory.TAG_FOCAL_LENGTH) ?: ""
+            val lens = subIFDDirectory?.getString(ExifIFD0Directory.TAG_LENS_MODEL) ?: ""
+
+            return PictureModel(
+                this,
+                title = this.name,
+                shotDate = date,
+                cameraText = camera,
+                exposureTimeText = if (exposureTime.isNotBlank()) "${exposureTime}sec" else "",
+                apertureText =  if (aperture.isNotBlank()) "f/${aperture}" else "",
+                isoText = if (iso.isNotBlank()) "ISO$iso" else "",
+                focalLengthText = if (focalLength.isNotBlank()) "${focalLength}mm" else "",
+                lensText = lens
+            )
         }
     } catch (tr: Throwable) {
         tr.printStackTrace()

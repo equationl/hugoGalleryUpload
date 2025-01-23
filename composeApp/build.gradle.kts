@@ -19,10 +19,12 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(compose.materialIconsExtended)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation("com.drewnoakes:metadata-extractor:2.18.0")
             implementation("com.huaweicloud:esdk-obs-java-bundle:3.24.12")
+            implementation("androidx.datastore:datastore-preferences-core:1.1.2")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

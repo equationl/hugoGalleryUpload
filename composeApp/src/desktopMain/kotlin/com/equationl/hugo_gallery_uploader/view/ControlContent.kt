@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
 
 @Composable
@@ -17,6 +19,10 @@ fun ControlContent(
 ) {
     val state = applicationState.controlState
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        applicationState.loadConfig()
+    }
 
     Box(modifier) {
         Card(
@@ -86,7 +92,6 @@ fun ControlContent(
                     )
 
 
-                    // TODO 可以支持按上传日期自动创建文件夹
                     OutlinedTextField(
                         value = state.obsSaveFolder,
                         onValueChange = {
@@ -96,6 +101,18 @@ fun ControlContent(
                             Text("上传文件夹")
                         }
                     )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = state.isAutoCreateFolder,
+                            onCheckedChange = {
+                                state.isAutoCreateFolder = it
+                            }
+                        )
+                        Text("是否自动按照当前日期新建文件夹", fontSize = 12.sp)
+                    }
 
                     Button(
                         onClick = {
@@ -116,10 +133,20 @@ fun ControlContent(
                         onClick = {
                             applicationState.onStartProgress()
                         },
-                        modifier = Modifier.padding(top = 8.dp),
                         enabled = applicationState.pictureFileList.isNotEmpty() && applicationState.isInputValid()
                     ) {
-                        Text("开始")
+                        Text("开始上传")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            applicationState.copyCode()
+                        },
+                        enabled = applicationState.pictureFileList.any { !it.remoteUrl.isNullOrBlank() }
+                    ) {
+                        Text("复制代码")
                     }
                 }
             }

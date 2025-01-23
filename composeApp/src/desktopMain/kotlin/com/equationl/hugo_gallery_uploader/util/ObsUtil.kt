@@ -32,7 +32,7 @@ object ObsUtil {
         }
     }
 
-    fun uploadFile(file: File, bucketName: String, obsSaveFolder: String, onProgressStatus: ((status: ProgressStatus) -> Unit)? = null): Result<Boolean> {
+    fun uploadFile(file: File, bucketName: String, obsSaveFolder: String, onProgressStatus: ((status: ProgressStatus) -> Unit)? = null): Result<String> {
         if (obsClient == null) {
             println("obsClient == null!!")
             return Result.failure(Exception("obsClient == null!!"))
@@ -45,11 +45,11 @@ object ObsUtil {
             request.file = file
 
             request.setProgressListener { status ->
-                onProgressStatus(status)
+                onProgressStatus?.invoke(status)
             }
 
-            obsClient!!.putObject(request)
-            return Result.success(true)
+            val result = obsClient!!.putObject(request)
+            return Result.success(result.objectUrl)
         } catch (tr: Throwable) {
             println("uploadFile error: ${tr.stackTraceToString()}")
             return Result.failure(tr)

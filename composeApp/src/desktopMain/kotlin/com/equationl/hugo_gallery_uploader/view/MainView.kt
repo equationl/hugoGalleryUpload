@@ -1,6 +1,8 @@
 package com.equationl.hugo_gallery_uploader.view
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,35 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.equationl.hugo_gallery_uploader.model.PictureModel
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
-import com.equationl.hugo_gallery_uploader.util.dropFileTarget
+import com.equationl.hugo_gallery_uploader.util.dropAndDragTarget
 import com.equationl.hugo_gallery_uploader.util.filterFileList
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainView(applicationState: ApplicationState) {
-    applicationState.window.contentPane.dropTarget = dropFileTarget {
-        applicationState.scope.launch(Dispatchers.IO) {
-            applicationState.showDialog("正在读取文件……", false)
-
-            applicationState.pictureFileList.addAll(
-                filterFileList(
-                    it,
-                    applicationState.controlState.timeZoneFilter.getInputValue().text,
-                    onProgress = {
-                        applicationState.showDialog(it)
-                    }
-                )
-            )
-
-            // applicationState.showDialog("正在重新排序……", false)
-            // applicationState.reSortFileList()
-
-            applicationState.showDialog("添加完成", isDialogCloseable = true)
-        }
-    }
-
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colors.background
@@ -59,7 +40,34 @@ fun MainView(applicationState: ApplicationState) {
         ) {
             ImageContent(
                 applicationState = applicationState,
-                modifier = Modifier.fillMaxSize().weight(1f)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .dragAndDropTarget(
+                        shouldStartDragAndDrop = { true },
+                        target = dropAndDragTarget {
+                            applicationState.showDialog("正在读取文件……", false)
+                            val oldSize = applicationState.pictureFileList.size
+                            val newPictureList = mutableSetOf<PictureModel>()
+                            newPictureList.addAll(applicationState.pictureFileList)
+                            val addFileList = filterFileList(
+                                it,
+                                applicationState.controlState.timeZoneFilter.getInputValue().text,
+                                onProgress = {
+                                    applicationState.showDialog(it)
+                                }
+                            )
+                            newPictureList.addAll(addFileList)
+                            applicationState.pictureFileList.clear()
+                            applicationState.pictureFileList.addAll(newPictureList)
+
+                            applicationState.showDialog("添加完成", isDialogCloseable = true)
+                            val addSize = applicationState.pictureFileList.size - oldSize
+                            if (addFileList.size != addSize) {
+                                applicationState.showDialog("有 ${addFileList.size - addSize} 个重复文件已过滤", isDialogCloseable = true)
+                            }
+                        }
+                    )
             )
 
             ControlContent(
