@@ -1,13 +1,26 @@
 package com.equationl.hugo_gallery_uploader.view
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
@@ -19,6 +32,9 @@ fun ControlContent(
 ) {
     val state = applicationState.controlState
     val scrollState = rememberScrollState()
+
+    var isShowAk by remember { mutableStateOf(false) }
+    var isShowSk by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         applicationState.loadConfig()
@@ -37,93 +53,158 @@ fun ControlContent(
             ) {
 
                 Column {
-                    Text("读取配置：")
+                    Text("读取配置", style = MaterialTheme.typography.subtitle1)
+
+                    Spacer(Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = state.timeZoneFilter.getInputValue(),
                         onValueChange = state.timeZoneFilter.onValueChange(),
                         label = {
-                            Text("时区")
+                            Text("日期转换时区")
                         }
                     )
                 }
+
+                Spacer(Modifier.height(32.dp))
 
                 Column {
-                    Text("OBS配置：")
-
-                    OutlinedTextField(
-                        value = state.obsAk,
-                        onValueChange = {
-                            state.obsAk = it
-                        },
-                        label = {
-                            Text("AK")
-                        }
-                    )
-
-                    OutlinedTextField(
-                        value = state.obsSk,
-                        onValueChange = {
-                            state.obsSk = it
-                        },
-                        label = {
-                            Text("SK")
-                        }
-                    )
-
-                    OutlinedTextField(
-                        value = state.obsBucket,
-                        onValueChange = {
-                            state.obsBucket = it
-                        },
-                        label = {
-                            Text("Bucket")
-                        }
-                    )
-
-                    OutlinedTextField(
-                        value = state.obsEndpoint,
-                        onValueChange = {
-                            state.obsEndpoint = it
-                        },
-                        label = {
-                            Text("Endpoint")
-                        }
-                    )
-
-
-                    OutlinedTextField(
-                        value = state.obsSaveFolder,
-                        onValueChange = {
-                            state.obsSaveFolder = it
-                        },
-                        label = {
-                            Text("上传文件夹")
-                        }
-                    )
 
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.clickable {
+                            state.isShowObsSetting = !state.isShowObsSetting
+                        }
                     ) {
-                        Checkbox(
-                            checked = state.isAutoCreateFolder,
-                            onCheckedChange = {
-                                state.isAutoCreateFolder = it
-                            }
+                        Text("OBS配置", style = MaterialTheme.typography.subtitle1)
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowRight,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(if (state.isShowObsSetting) 0f else 90f)
                         )
-                        Text("是否自动按照当前日期新建文件夹", fontSize = 12.sp)
                     }
 
-                    Button(
-                        onClick = {
-                            applicationState.updateObsConfig()
-                        },
-                        modifier = Modifier.padding(top = 8.dp),
-                        enabled = applicationState.isInputValid()
+                    Spacer(Modifier.height(16.dp))
+
+                    AnimatedVisibility(
+                        state.isShowObsSetting,
                     ) {
-                        Text("更新配置")
+                        Column {
+                            OutlinedTextField(
+                                value = state.obsAk,
+                                onValueChange = {
+                                    state.obsAk = it
+                                },
+                                label = {
+                                    Text("AK")
+                                },
+                                visualTransformation = if (isShowAk) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            isShowAk = !isShowAk
+                                        }
+                                    ) {
+                                        Icon(
+                                            if (isShowAk) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+
+                            OutlinedTextField(
+                                value = state.obsSk,
+                                onValueChange = {
+                                    state.obsSk = it
+                                },
+                                label = {
+                                    Text("SK")
+                                },
+                                visualTransformation = if (isShowSk) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            isShowSk = !isShowSk
+                                        }
+                                    ) {
+                                        Icon(
+                                            if (isShowSk) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+
+                            OutlinedTextField(
+                                value = state.obsBucket,
+                                onValueChange = {
+                                    state.obsBucket = it
+                                },
+                                label = {
+                                    Text("Bucket")
+                                }
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+
+                            OutlinedTextField(
+                                value = state.obsEndpoint,
+                                onValueChange = {
+                                    state.obsEndpoint = it
+                                },
+                                label = {
+                                    Text("Endpoint")
+                                }
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+
+                            OutlinedTextField(
+                                value = state.obsSaveFolder,
+                                onValueChange = {
+                                    state.obsSaveFolder = it
+                                },
+                                label = {
+                                    Text("上传文件夹")
+                                }
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = state.isAutoCreateFolder,
+                                    onCheckedChange = {
+                                        state.isAutoCreateFolder = it
+                                    }
+                                )
+                                Text("是否自动按照当前日期新建文件夹", fontSize = 12.sp)
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            Button(
+                                onClick = {
+                                    applicationState.updateObsConfig()
+                                },
+                                modifier = Modifier.padding(top = 8.dp),
+                                enabled = applicationState.isInputValid()
+                            ) {
+                                Text("更新配置")
+                            }
+                        }
                     }
                 }
+
+                Spacer(Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

@@ -15,4 +15,6 @@ class ControlState {
     var obsBucket by mutableStateOf("")
     var obsSaveFolder by mutableStateOf("")
     var isAutoCreateFolder by mutableStateOf(true)
+
+    var isShowObsSetting by mutableStateOf(false)
 }
