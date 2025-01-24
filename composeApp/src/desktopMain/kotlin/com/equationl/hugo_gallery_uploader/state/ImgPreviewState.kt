@@ -11,5 +11,17 @@ class ImgPreviewState {
 
     var showImageIndex by mutableStateOf(0)
 
-    var isReorderAble by mutableStateOf(false)
+    var listItemType by mutableStateOf(ImgListItemType.TEXT)
+}
+
+enum class ImgListItemType(val showText: String) {
+    TEXT("仅标题"),
+    IMAGE("预览图")
+}
+
+fun ImgListItemType.toggleImgListItemType(): ImgListItemType {
+    return when (this) {
+        ImgListItemType.TEXT -> ImgListItemType.IMAGE
+        ImgListItemType.IMAGE -> ImgListItemType.TEXT
+    }
 }

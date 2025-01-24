@@ -1,25 +1,41 @@
 package com.equationl.hugo_gallery_uploader.view
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentColor
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.CloudUpload
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.PlatformContext
@@ -27,9 +43,10 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
+import com.equationl.hugo_gallery_uploader.state.ImgListItemType
+import com.equationl.hugo_gallery_uploader.state.toggleImgListItemType
 import com.equationl.hugo_gallery_uploader.util.legalSuffixList
 import com.equationl.hugo_gallery_uploader.widget.dragHandle
-import com.equationl.hugo_gallery_uploader.widget.draggableItems
 import com.equationl.hugo_gallery_uploader.widget.draggableItemsIndexed
 import com.equationl.hugo_gallery_uploader.widget.rememberDraggableListState
 
@@ -105,7 +122,7 @@ fun ImageContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        Button(onClick = {
+                        TextButton(onClick = {
                             applicationState.onClickImgChoose()
                         }) {
                             Text("添加")
@@ -113,15 +130,15 @@ fun ImageContent(
 
                         Spacer(Modifier.width(4.dp))
 
-                        Button(onClick = { applicationState.onDelImg(-1) }) {
+                        TextButton(onClick = { applicationState.onDelImg(-1) }) {
                             Text("清空")
                         }
                     }
 
                     Text("${state.showImageIndex + 1}/${applicationState.pictureFileList.size}")
 
-                    Button(onClick = { state.isReorderAble = !state.isReorderAble }) {
-                        Text("排序：${state.isReorderAble}")
+                    TextButton(onClick = { state.listItemType = state.listItemType.toggleImgListItemType() }) {
+                        Text("显示方式：${state.listItemType.showText}")
                     }
                 }
 
@@ -155,7 +172,7 @@ fun ImageContent(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                if (state.isReorderAble) {
+                                if (state.listItemType == ImgListItemType.IMAGE) {
                                     AsyncImage(
                                         model = ImageRequest.Builder(PlatformContext.INSTANCE)
                                             .data(pictureModel.file)
@@ -173,26 +190,27 @@ fun ImageContent(
                                 }
 
                                 Text(
-                                    pictureModel.file.name,
+                                    pictureModel.title ?: pictureModel.file.name,
                                     modifier = Modifier.clickable {
-                                        if (!state.isReorderAble) {
+                                        if (state.listItemType == ImgListItemType.TEXT) {
                                             state.showImageIndex = index
                                         }
-                                    }.weight(0.9f),
+                                    }.weight(0.8f),
                                     color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
                                 )
 
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.End,
-                                    modifier = Modifier.weight(0.1f)
+                                    modifier = Modifier.weight(0.2f)
                                 ) {
 
-                                    if (!state.isReorderAble) {
+                                    if (state.listItemType == ImgListItemType.TEXT) {
                                         if (!pictureModel.remoteUrl.isNullOrBlank()) {
                                             Icon(
                                                 imageVector = Icons.Rounded.CloudUpload,
                                                 contentDescription = null,
+                                                tint = LocalContentColor.current.copy(alpha = 0.5f)
                                             )
                                         }
 
@@ -205,7 +223,23 @@ fun ImageContent(
                                         )
                                     }
 
-                                    if (state.isReorderAble) {
+                                    if (state.listItemType == ImgListItemType.IMAGE) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "edit title",
+                                            modifier = Modifier.clickable {
+                                                applicationState.showInputDialog(
+                                                    title = "修改标题",
+                                                    defaultValue = pictureModel.title ?: pictureModel.file.name,
+                                                    onInputDialogConfirm = {
+                                                        applicationState.closeInputDialog()
+                                                        applicationState.editPictureModelTitle(applicationState.inputDialogValue, index)
+                                                    }
+                                                )
+                                            }
+                                        )
+
+
                                         Icon(
                                             modifier = Modifier.dragHandle(
                                                 state = state.draggableState,

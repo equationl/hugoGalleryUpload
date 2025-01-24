@@ -49,6 +49,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     var pictureFileList = mutableStateListOf<PictureModel>()
     var historyList = mutableStateListOf<UploadHistoryModel>()
     var dialogText by mutableStateOf("")
+    var inputDialogValue by mutableStateOf("")
 
     var windowShowPicture: File? by mutableStateOf(null)
         private set
@@ -56,6 +57,13 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         private set
     var isDialogCloseable by mutableStateOf(true)
         private set
+
+    var isShowInputDialog by mutableStateOf(false)
+        private set
+    var inputDialogTitle by mutableStateOf("请输入")
+        private set
+
+    var onInputDialogConfirm: (() -> Unit)? = null
 
 
     fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -170,6 +178,25 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
             dialogText = ""
             isShowDialog = false
         }
+    }
+
+    fun showInputDialog(title: String, defaultValue: String, onInputDialogConfirm: (() -> Unit)? = null) {
+        this.onInputDialogConfirm = onInputDialogConfirm
+        inputDialogValue = defaultValue
+        inputDialogTitle = title
+        isShowInputDialog = true
+    }
+
+    fun editPictureModelTitle(inputDialogValue: String, index: Int) {
+        if (inputDialogValue.isNotBlank()) {
+            val pictureModel = pictureFileList.removeAt(index)
+            pictureModel.title = inputDialogValue
+            pictureFileList.add(index, pictureModel)
+        }
+    }
+
+    fun closeInputDialog() {
+        isShowInputDialog = false
     }
 
     fun showPicture(picture: File?) {

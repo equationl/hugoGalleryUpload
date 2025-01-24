@@ -8,7 +8,7 @@ import java.util.Date
 * */
 data class PictureModel(
     val file: File,
-    val title: String? = null,
+    var title: String? = null,
     val shotDate: Date? = null,
     val cameraText: String? = null,
     val lensText: String? = null,
