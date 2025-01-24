@@ -16,7 +16,9 @@ import androidx.datastore.preferences.core.edit
 import com.equationl.hugo_gallery_uploader.constant.DataKey
 import com.equationl.hugo_gallery_uploader.constant.DefaultValue
 import com.equationl.hugo_gallery_uploader.model.PictureModel
+import com.equationl.hugo_gallery_uploader.model.UploadHistoryModel
 import com.equationl.hugo_gallery_uploader.util.ObsUtil
+import com.equationl.hugo_gallery_uploader.util.UploadHistoryUtil
 import com.equationl.hugo_gallery_uploader.util.dataStore
 import com.equationl.hugo_gallery_uploader.util.filterFileList
 import com.equationl.hugo_gallery_uploader.util.showFileSelector
@@ -45,6 +47,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     val imgPreviewState = ImgPreviewState()
 
     var pictureFileList = mutableStateListOf<PictureModel>()
+    var historyList = mutableStateListOf<UploadHistoryModel>()
     var dialogText by mutableStateOf("")
 
     var windowShowPicture: File? by mutableStateOf(null)
@@ -232,6 +235,9 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
             pictureFileList.clear()
             pictureFileList.addAll(tempPictureModel)
 
+            UploadHistoryUtil.saveUploadHistory(pictureFileList)
+            loadHistory()
+
             showDialog("${pictureFileList.size}个文件已全部上传完成，请关闭弹窗后点击 “复制代码” 获取生成结果", isDialogCloseable = true)
         }
     }
@@ -325,6 +331,24 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 controlState.isAutoCreateFolder = preferences[DataKey.IS_AUTO_CREATE_FOLDER] ?: false
                 controlState.timeZoneFilter.setValue(preferences[DataKey.TIME_ZONE] ?: DefaultValue.DEFAULT_TIME_ZONE)
                 controlState.maxHeight.setValue((preferences[DataKey.ZOOM_MAX_HEIGHT] ?: 0).toString())
+            }
+        }
+    }
+
+    fun loadHistory() {
+        scope.launch(Dispatchers.IO) {
+            historyList.clear()
+            historyList.addAll(UploadHistoryUtil.getUploadHistoryList())
+            println("historyList = $historyList")
+        }
+    }
+
+    fun readHistory(uploadHistoryModel: UploadHistoryModel) {
+        scope.launch {
+            val newPictureModel = UploadHistoryUtil.getUploadHistory(uploadHistoryModel.fileName)
+            if (!newPictureModel.isNullOrEmpty()) {
+                pictureFileList.clear()
+                pictureFileList.addAll(newPictureModel)
             }
         }
     }

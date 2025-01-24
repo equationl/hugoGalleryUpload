@@ -26,6 +26,7 @@ kotlin {
             implementation("com.huaweicloud:esdk-obs-java-bundle:3.24.12")
             implementation("androidx.datastore:datastore-preferences-core:1.1.2")
             implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+            implementation("com.google.code.gson:gson:2.11.0")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

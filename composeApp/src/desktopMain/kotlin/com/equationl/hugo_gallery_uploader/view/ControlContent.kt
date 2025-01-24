@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,8 +24,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.ListItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -41,8 +47,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.equationl.hugo_gallery_uploader.model.UploadHistoryModel
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
 
 @Composable
@@ -58,6 +66,7 @@ fun ControlContent(
 
     LaunchedEffect(Unit) {
         applicationState.loadConfig()
+        applicationState.loadHistory()
     }
 
     Box(modifier) {
@@ -73,30 +82,78 @@ fun ControlContent(
             ) {
 
                 Column {
-                    Text("读取配置", style = MaterialTheme.typography.subtitle1)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.clickable {
+                            state.isShowHistory = !state.isShowHistory
+                        }
+                    ) {
+                        Text("查看上传历史", style = MaterialTheme.typography.subtitle1)
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowRight,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(if (state.isShowHistory) 0f else 90f)
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+
+                    AnimatedVisibility(
+                        visible = state.isShowHistory
+                    ) {
+                        HistoryList(
+                            data = applicationState.historyList,
+                            onClickItem = { applicationState.readHistory(it) }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.clickable {
+                            state.isShowReadSetting = !state.isShowReadSetting
+                        }
+                    ) {
+                        Text("读取配置", style = MaterialTheme.typography.subtitle1)
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowRight,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(if (state.isShowReadSetting) 0f else 90f)
+                        )
+                    }
 
                     Spacer(Modifier.height(16.dp))
 
-                    OutlinedTextField(
-                        value = state.timeZoneFilter.getInputValue(),
-                        onValueChange = state.timeZoneFilter.onValueChange(),
-                        label = {
-                            Text("日期转换时区")
-                        }
-                    )
+                    AnimatedVisibility(
+                        state.isShowReadSetting
+                    ) {
+                        Column {
+                            OutlinedTextField(
+                                value = state.timeZoneFilter.getInputValue(),
+                                onValueChange = state.timeZoneFilter.onValueChange(),
+                                label = {
+                                    Text("日期转换时区")
+                                }
+                            )
 
-                    Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(8.dp))
 
-                    OutlinedTextField(
-                        value = state.maxHeight.getInputValue(),
-                        onValueChange = state.maxHeight.onValueChange(),
-                        label = {
-                            Text("缩略图最大高度（0表示不缩略）")
+                            OutlinedTextField(
+                                value = state.maxHeight.getInputValue(),
+                                onValueChange = state.maxHeight.onValueChange(),
+                                label = {
+                                    Text("缩略图最大高度（0表示不缩略）")
+                                }
+                            )
                         }
-                    )
+                    }
                 }
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(16.dp))
 
                 Column {
 
@@ -268,5 +325,47 @@ fun ControlContent(
                 .fillMaxHeight(),
             adapter = rememberScrollbarAdapter(scrollState)
         )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun HistoryList(
+    data: List<UploadHistoryModel>,
+    onClickItem: (item: UploadHistoryModel) -> Unit
+) {
+    val scrollState = rememberLazyListState()
+    Card(
+       elevation = 4.dp
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().heightIn(0.dp, 200.dp)
+        ) {
+            LazyColumn(
+                state = scrollState
+            ) {
+                items(
+                    count = data.size,
+                    key = { index -> data[index].filePath }
+                ) {
+                    val item = data[it]
+                    ListItem(
+                        modifier = Modifier.clickable {
+                            onClickItem(item)
+                        },
+                    ) {
+                        Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
+                    }
+                    Divider()
+                }
+            }
+
+            VerticalScrollbar(
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(
+                    scrollState = scrollState
+                )
+            )
+        }
     }
 }

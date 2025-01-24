@@ -19,4 +19,6 @@ class ControlState {
     var maxHeight = FilterNumber(defaultValue = TextFieldValue("0"))
 
     var isShowObsSetting by mutableStateOf(false)
+    var isShowReadSetting by mutableStateOf(false)
+    var isShowHistory by mutableStateOf(false)
 }
