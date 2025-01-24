@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentColor
@@ -130,7 +131,11 @@ fun ImageContent(
 
                         Spacer(Modifier.width(4.dp))
 
-                        TextButton(onClick = { applicationState.onDelImg(-1) }) {
+                        TextButton(onClick = {
+                            applicationState.showConfirmDialog("确定清空所有图片？") {
+                                applicationState.onDelImg(-1)
+                            }
+                        }) {
                             Text("清空")
                         }
                     }
@@ -156,100 +161,109 @@ fun ImageContent(
                             items = applicationState.pictureFileList,
                             key = { _, item ->  item.file.path }
                         ) { index, pictureModel, isDragging ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().then(
-                                    if (isDragging) Modifier.background(MaterialTheme.colors.surface)
-                                    else if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
-                                    else {
-                                        if (index % 2 == 0) {
-                                            Modifier.background(MaterialTheme.colors.secondaryVariant)
-                                        }
-                                        else {
-                                            Modifier
-                                        }
-                                    }
-                                ),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                if (state.listItemType == ImgListItemType.IMAGE) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(PlatformContext.INSTANCE)
-                                            .data(pictureModel.file)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(150.dp)
-                                            .clickable {
-                                                applicationState.showPicture(pictureModel.file)
-                                            },
-                                        contentScale = ContentScale.Inside,
-                                        placeholder = rememberVectorPainter(Icons.Outlined.Download)
-                                    )
-                                }
-
-                                Text(
-                                    pictureModel.title ?: pictureModel.file.name,
-                                    modifier = Modifier.clickable {
-                                        if (state.listItemType == ImgListItemType.TEXT) {
-                                            state.showImageIndex = index
-                                        }
-                                    }.weight(0.8f),
-                                    color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
-                                )
-
                                 Row(
+                                    modifier = Modifier.fillMaxWidth().then(
+                                        //if (isDragging) Modifier.background(MaterialTheme.colors.onSurface)
+                                        if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
+                                        else Modifier
+//                                    else {
+//                                        if (index % 2 == 0) {
+//                                            Modifier.background(MaterialTheme.colors.secondaryVariant)
+//                                        }
+//                                        else {
+//                                            Modifier
+//                                        }
+//                                    }
+                                    ),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.End,
-                                    modifier = Modifier.weight(0.2f)
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
+                                    if (state.listItemType == ImgListItemType.IMAGE) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(PlatformContext.INSTANCE)
+                                                .data(pictureModel.file)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(150.dp)
+                                                .clickable {
+                                                    applicationState.showPicture(pictureModel.file)
+                                                },
+                                            contentScale = ContentScale.Inside,
+                                            placeholder = rememberVectorPainter(Icons.Outlined.Download)
+                                        )
+                                    }
 
-                                    if (state.listItemType == ImgListItemType.TEXT) {
-                                        if (!pictureModel.remoteUrl.isNullOrBlank()) {
+                                    Text(
+                                        "${index + 1}.${pictureModel.title ?: pictureModel.file.name}",
+                                        modifier = Modifier.clickable {
+                                            if (state.listItemType == ImgListItemType.TEXT) {
+                                                state.showImageIndex = index
+                                            }
+                                        }.weight(0.8f),
+                                        color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
+                                    )
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.End,
+                                        modifier = Modifier.weight(0.2f)
+                                    ) {
+
+                                        if (state.listItemType == ImgListItemType.TEXT) {
+                                            if (!pictureModel.remoteUrl.isNullOrBlank()) {
+                                                Icon(
+                                                    imageVector = Icons.Rounded.CloudUpload,
+                                                    contentDescription = null,
+                                                    tint = LocalContentColor.current.copy(alpha = 0.5f)
+                                                )
+                                            }
+
                                             Icon(
-                                                imageVector = Icons.Rounded.CloudUpload,
+                                                imageVector = Icons.Rounded.Delete,
                                                 contentDescription = null,
-                                                tint = LocalContentColor.current.copy(alpha = 0.5f)
+                                                modifier = Modifier.clickable {
+                                                    applicationState.showConfirmDialog("确定删除？") {
+                                                        applicationState.onDelImg(index)
+                                                    }
+                                                }
                                             )
                                         }
 
-                                        Icon(
-                                            imageVector = Icons.Rounded.Delete,
-                                            contentDescription = null,
-                                            modifier = Modifier.clickable {
-                                                applicationState.onDelImg(index)
-                                            }
-                                        )
-                                    }
-
-                                    if (state.listItemType == ImgListItemType.IMAGE) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "edit title",
-                                            modifier = Modifier.clickable {
-                                                applicationState.showInputDialog(
-                                                    title = "修改标题",
-                                                    defaultValue = pictureModel.title ?: pictureModel.file.name,
-                                                    onInputDialogConfirm = {
-                                                        applicationState.closeInputDialog()
-                                                        applicationState.editPictureModelTitle(applicationState.inputDialogValue, index)
-                                                    }
-                                                )
-                                            }
-                                        )
+                                        if (state.listItemType == ImgListItemType.IMAGE) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "edit title",
+                                                modifier = Modifier.clickable {
+                                                    applicationState.showInputDialog(
+                                                        title = "修改标题",
+                                                        defaultValue = pictureModel.title ?: pictureModel.file.name,
+                                                        onInputDialogConfirm = {
+                                                            applicationState.closeInputDialog()
+                                                            applicationState.editPictureModelTitle(applicationState.inputDialogValue, index)
+                                                        }
+                                                    )
+                                                }
+                                            )
 
 
-                                        Icon(
-                                            modifier = Modifier.dragHandle(
-                                                state = state.draggableState,
-                                                key = pictureModel.file.path
-                                            ),
-                                            imageVector = Icons.Default.DragHandle,
-                                            contentDescription = "Reorder icon"
-                                        )
+                                            Icon(
+                                                modifier = Modifier.dragHandle(
+                                                    state = state.draggableState,
+                                                    key = pictureModel.file.path
+                                                ),
+                                                imageVector = Icons.Default.DragHandle,
+                                                contentDescription = "Reorder icon"
+                                            )
+                                        }
                                     }
                                 }
+
+                                Divider()
                             }
                         }
 

@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -128,7 +128,7 @@ fun MainView(applicationState: ApplicationState) {
                     label = { Text(applicationState.inputDialogTitle) },
                     singleLine = true
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
@@ -139,6 +139,37 @@ fun MainView(applicationState: ApplicationState) {
                         Text("确定")
                     }
                     Button(onClick = {applicationState.closeInputDialog()}) {
+                        Text("取消")
+                    }
+                }
+            }
+        }
+    }
+
+    if (applicationState.isShowConfirmDialog) {
+        Dialog(
+            onCloseRequest = { applicationState.closeConfirmDialog() },
+            title = "提示",
+            resizable = false
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(8.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(applicationState.confirmDialogContent, style = MaterialTheme.typography.body1)
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = {
+                        applicationState.closeConfirmDialog()
+                        applicationState.onConfirmDialogConfirm?.invoke()
+                    }) {
+                        Text("确定")
+                    }
+                    Button(onClick = {applicationState.closeConfirmDialog()}) {
                         Text("取消")
                     }
                 }

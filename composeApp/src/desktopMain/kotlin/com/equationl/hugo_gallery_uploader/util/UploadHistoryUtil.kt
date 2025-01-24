@@ -31,6 +31,7 @@ object UploadHistoryUtil {
         savePath.walk()
             .filter { it.isFile }
             .filter { it.extension.lowercase() == SAVE_FILE_EXT }
+            .sortedByDescending { it.nameWithoutExtension.toLongOrNull() ?: 0 }
             .forEach { file -> result.add(file.toUploadHistoryModel()) }
         return result
     }
@@ -45,6 +46,17 @@ object UploadHistoryUtil {
         return null
     }
 
+    fun deleteUploadHistory(name: String) {
+        try {
+            val savePath = getSavePath()
+            val file = File(savePath, name)
+            if (file.exists()) {
+                file.delete()
+            }
+        } catch (tr: Throwable) {
+            println("deleteUploadHistory error: ${tr.stackTraceToString()}")
+        }
+    }
 
     private fun File.toUploadHistoryModel(): UploadHistoryModel {
         val title = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(nameWithoutExtension.toLongOrNull() ?: 0)

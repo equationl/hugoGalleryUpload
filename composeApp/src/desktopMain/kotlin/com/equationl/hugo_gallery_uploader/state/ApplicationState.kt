@@ -63,7 +63,14 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     var inputDialogTitle by mutableStateOf("请输入")
         private set
 
+    var isShowConfirmDialog by mutableStateOf(false)
+        private set
+    var confirmDialogContent by mutableStateOf("请输入")
+        private set
+
+
     var onInputDialogConfirm: (() -> Unit)? = null
+    var onConfirmDialogConfirm: (() -> Unit)? = null
 
 
     fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -199,6 +206,17 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         isShowInputDialog = false
     }
 
+
+    fun showConfirmDialog(content: String, onConfirmDialogConfirm: (() -> Unit)? = null) {
+        this.onConfirmDialogConfirm = onConfirmDialogConfirm
+        confirmDialogContent = content
+        isShowConfirmDialog = true
+    }
+
+    fun closeConfirmDialog() {
+        isShowConfirmDialog = false
+    }
+
     fun showPicture(picture: File?) {
         windowShowPicture = picture
     }
@@ -297,18 +315,24 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 currentDes = ""
             }
 
-            var thumbnailHeight = pictureModel.imgHeight ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE
-            val thumbnailWidth: Int
-            if (thumbnailHeight > controlState.maxHeight.getInputValue().text.toInt()) {
-                thumbnailHeight = controlState.maxHeight.getInputValue().text.toInt()
-                thumbnailWidth = thumbnailHeight * (pictureModel.imgWidth ?: 1) / (pictureModel.imgHeight ?: 1)
+            if (controlState.maxHeight.getInputValue().text.toInt() == 0) {
+                imgThumbnailWidth += "${pictureModel.imgWidth ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE},"
+                imgThumbnailHeight += "${pictureModel.imgHeight ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE},"
             }
             else {
-                thumbnailWidth = pictureModel.imgWidth ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE
-            }
+                var thumbnailHeight = pictureModel.imgHeight ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE
+                val thumbnailWidth: Int
+                if (thumbnailHeight > controlState.maxHeight.getInputValue().text.toInt()) {
+                    thumbnailHeight = controlState.maxHeight.getInputValue().text.toInt()
+                    thumbnailWidth = thumbnailHeight * (pictureModel.imgWidth ?: 1) / (pictureModel.imgHeight ?: 1)
+                }
+                else {
+                    thumbnailWidth = pictureModel.imgWidth ?: DefaultValue.DEFAULT_THUMBNAIL_SIZE
+                }
 
-            imgThumbnailWidth += "$thumbnailWidth,"
-            imgThumbnailHeight += "$thumbnailHeight,"
+                imgThumbnailWidth += "$thumbnailWidth,"
+                imgThumbnailHeight += "$thumbnailHeight,"
+            }
 
             imgPath += "${pictureModel.remoteUrl ?: ""},"
             imgTitle += "${pictureModel.title ?: ""},"
@@ -377,6 +401,13 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 pictureFileList.clear()
                 pictureFileList.addAll(newPictureModel)
             }
+        }
+    }
+
+    fun deleteHistory(uploadHistoryModel: UploadHistoryModel) {
+        scope.launch {
+            UploadHistoryUtil.deleteUploadHistory(uploadHistoryModel.fileName)
+            historyList.remove(uploadHistoryModel)
         }
     }
 

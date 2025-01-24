@@ -34,6 +34,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
@@ -103,7 +104,21 @@ fun ControlContent(
                     ) {
                         HistoryList(
                             data = applicationState.historyList,
-                            onClickItem = { applicationState.readHistory(it) }
+                            onClickItem = {
+                                if (applicationState.pictureFileList.isEmpty()) {
+                                    applicationState.readHistory(it)
+                                }
+                                else {
+                                    applicationState.showConfirmDialog("读取历史上传数据后当前工作区会被覆盖，请确定您已上传当前工作区后再读取") {
+                                        applicationState.readHistory(it)
+                                    }
+                                }
+                            },
+                            onClickDelete = {
+                                applicationState.showConfirmDialog("确认删除？") {
+                                    applicationState.deleteHistory(it)
+                                }
+                            }
                         )
                     }
                 }
@@ -332,7 +347,8 @@ fun ControlContent(
 @Composable
 private fun HistoryList(
     data: List<UploadHistoryModel>,
-    onClickItem: (item: UploadHistoryModel) -> Unit
+    onClickItem: (item: UploadHistoryModel) -> Unit,
+    onClickDelete: (item: UploadHistoryModel) -> Unit
 ) {
     val scrollState = rememberLazyListState()
     Card(
@@ -352,6 +368,18 @@ private fun HistoryList(
                     ListItem(
                         modifier = Modifier.clickable {
                             onClickItem(item)
+                        },
+                        trailing = {
+                            IconButton(
+                                onClick = {
+                                    onClickDelete(item)
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete"
+                                )
+                            }
                         },
                     ) {
                         Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
