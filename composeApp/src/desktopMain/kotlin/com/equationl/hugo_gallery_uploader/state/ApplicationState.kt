@@ -19,6 +19,7 @@ import com.equationl.hugo_gallery_uploader.model.PictureModel
 import com.equationl.hugo_gallery_uploader.model.UploadHistoryModel
 import com.equationl.hugo_gallery_uploader.util.ObsUtil
 import com.equationl.hugo_gallery_uploader.util.UploadHistoryUtil
+import com.equationl.hugo_gallery_uploader.util.Util.copyToClipboard
 import com.equationl.hugo_gallery_uploader.util.dataStore
 import com.equationl.hugo_gallery_uploader.util.filterFileList
 import com.equationl.hugo_gallery_uploader.util.showFileSelector
@@ -26,8 +27,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.awt.Toolkit
-import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -217,6 +216,22 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         isShowConfirmDialog = false
     }
 
+    fun showPictureDetail(pictureModel: PictureModel) {
+        var text = ""
+        text += "标题：${pictureModel.title}\n"
+        text += "链接：${pictureModel.remoteUrl}\n"
+        text += "相机：${pictureModel.cameraText}\n"
+        text += "镜头：${pictureModel.lensText}\n"
+        text += "日期：${SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(pictureModel.shotDate)}\n"
+        text += "快门：${pictureModel.exposureTimeText}\n"
+        text += "光圈：${pictureModel.apertureText}\n"
+        text += "iso：${pictureModel.isoText}\n"
+        text += "焦距：${pictureModel.focalLengthText}\n"
+        text += "尺寸：${pictureModel.imgWidth}x${pictureModel.imgHeight}\n"
+
+        showDialog(text, isAppend = false, isDialogCloseable = true)
+    }
+
     fun showPicture(picture: File?) {
         windowShowPicture = picture
     }
@@ -364,9 +379,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
             imgHeight="$imgThumbnailHeight">}}
         """.trimIndent()
 
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        val transferable = StringSelection(codeResult)
-        clipboard.setContents(transferable, transferable)
+        codeResult.copyToClipboard()
 
         showDialog("$codeResult \n\n已将上面的代码复制到剪切板，你也可以自行复制", isDialogCloseable = true)
     }

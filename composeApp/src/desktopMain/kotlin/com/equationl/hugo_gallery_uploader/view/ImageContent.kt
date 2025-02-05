@@ -21,7 +21,6 @@ import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -29,8 +28,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.CopyAll
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +46,7 @@ import coil3.request.crossfade
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
 import com.equationl.hugo_gallery_uploader.state.ImgListItemType
 import com.equationl.hugo_gallery_uploader.state.toggleImgListItemType
+import com.equationl.hugo_gallery_uploader.util.Util.copyToClipboard
 import com.equationl.hugo_gallery_uploader.util.legalSuffixList
 import com.equationl.hugo_gallery_uploader.widget.dragHandle
 import com.equationl.hugo_gallery_uploader.widget.draggableItemsIndexed
@@ -217,9 +218,24 @@ fun ImageContent(
                                         if (state.listItemType == ImgListItemType.TEXT) {
                                             if (!pictureModel.remoteUrl.isNullOrBlank()) {
                                                 Icon(
-                                                    imageVector = Icons.Rounded.CloudUpload,
+                                                    imageVector = Icons.Rounded.CopyAll,
                                                     contentDescription = null,
-                                                    tint = LocalContentColor.current.copy(alpha = 0.5f)
+                                                    //tint = LocalContentColor.current.copy(alpha = 0.5f),
+                                                    modifier = Modifier.clickable {
+                                                        pictureModel.remoteUrl!!.copyToClipboard()
+                                                        applicationState.showDialog("已复制链接：\n${pictureModel.remoteUrl!!}", isAppend = false, isDialogCloseable = true)
+                                                    }
+                                                )
+                                            }
+
+                                            if (pictureModel.shotDate != null) {
+                                                Icon(
+                                                    imageVector = Icons.Rounded.Info,
+                                                    contentDescription = null,
+                                                    //tint = LocalContentColor.current.copy(alpha = 0.5f),
+                                                    modifier = Modifier.clickable {
+                                                        applicationState.showPictureDetail(pictureModel)
+                                                    }
                                                 )
                                             }
 
