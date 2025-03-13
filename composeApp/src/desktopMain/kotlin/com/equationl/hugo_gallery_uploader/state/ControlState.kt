@@ -17,8 +17,14 @@ class ControlState {
     var obsSaveFolder by mutableStateOf("")
     var isAutoCreateFolder by mutableStateOf(true)
     var maxHeight = FilterNumber(defaultValue = TextFieldValue("0"))
+    
+    // 图片加载设置
+    var imageRefererUrl by mutableStateOf("")
+    var enableImageReferer by mutableStateOf(false)
+    var imageCacheSize by mutableStateOf("0 B")
 
     var isShowObsSetting by mutableStateOf(false)
     var isShowReadSetting by mutableStateOf(false)
     var isShowHistory by mutableStateOf(false)
+    var isShowImageLoadSetting by mutableStateOf(false)
 }

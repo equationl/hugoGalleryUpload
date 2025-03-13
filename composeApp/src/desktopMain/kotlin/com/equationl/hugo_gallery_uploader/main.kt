@@ -13,6 +13,7 @@ import com.equationl.hugo_gallery_uploader.state.rememberApplicationState
 import com.equationl.hugo_gallery_uploader.view.MainView
 import com.equationl.hugo_gallery_uploader.view.ShowImgView
 import java.awt.Dimension
+import java.io.File
 import kotlin.math.roundToInt
 
 fun main() = application {
@@ -38,7 +39,11 @@ fun main() = application {
 
     if (applicationState.windowShowPicture != null) {
         Window(
-            title = "${applicationState.windowShowPicture?.name}",
+            title = when (val picture = applicationState.windowShowPicture) {
+                is File -> picture.name
+                is String -> "预览网络图片"
+                else -> "图片预览"
+            },
             onCloseRequest = {
                 applicationState.showPicture(null)
             },

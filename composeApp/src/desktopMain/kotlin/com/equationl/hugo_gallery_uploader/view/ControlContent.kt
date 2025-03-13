@@ -308,6 +308,104 @@ fun ControlContent(
 
                 Spacer(Modifier.height(16.dp))
 
+                Column {
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.clickable {
+                            state.isShowImageLoadSetting = !state.isShowImageLoadSetting
+                            if (state.isShowImageLoadSetting) {
+                                // 加载缓存大小信息
+                                applicationState.updateCacheSizeInfo()
+                            }
+                        }
+                    ) {
+                        Text("加载设置", style = MaterialTheme.typography.subtitle1)
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowRight,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(if (state.isShowImageLoadSetting) 0f else 90f)
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    AnimatedVisibility(
+                        state.isShowImageLoadSetting,
+                    ) {
+                        Column {
+                            if (state.enableImageReferer) {
+                                OutlinedTextField(
+                                    value = state.imageRefererUrl,
+                                    onValueChange = {
+                                        state.imageRefererUrl = it
+                                    },
+                                    label = {
+                                        Text("防盗链 Referer URL")
+                                    },
+                                    placeholder = {
+                                        Text("例如: https://example.com")
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Spacer(Modifier.height(8.dp))
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = state.enableImageReferer,
+                                    onCheckedChange = {
+                                        state.enableImageReferer = it
+                                    }
+                                )
+                                Text("绕过防盗链", fontSize = 12.sp)
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            Divider()
+
+                            Spacer(Modifier.height(16.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "图片缓存: ${state.imageCacheSize}",
+                                    style = MaterialTheme.typography.body2
+                                )
+                                
+                                Button(
+                                    onClick = {
+                                        applicationState.clearImageCache()
+                                    }
+                                ) {
+                                    Text("清除缓存")
+                                }
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            Button(
+                                onClick = {
+                                    applicationState.updateImageLoadConfig()
+                                },
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text("更新配置")
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center

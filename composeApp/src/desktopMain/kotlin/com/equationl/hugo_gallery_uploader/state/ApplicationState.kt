@@ -17,6 +17,7 @@ import com.equationl.hugo_gallery_uploader.constant.DataKey
 import com.equationl.hugo_gallery_uploader.constant.DefaultValue
 import com.equationl.hugo_gallery_uploader.model.PictureModel
 import com.equationl.hugo_gallery_uploader.model.UploadHistoryModel
+import com.equationl.hugo_gallery_uploader.util.ImageUtil
 import com.equationl.hugo_gallery_uploader.util.ObsUtil
 import com.equationl.hugo_gallery_uploader.util.UploadHistoryUtil
 import com.equationl.hugo_gallery_uploader.util.Util.copyToClipboard
@@ -50,7 +51,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     var dialogText by mutableStateOf("")
     var inputDialogValue by mutableStateOf("")
 
-    var windowShowPicture: File? by mutableStateOf(null)
+    var windowShowPicture: Any? by mutableStateOf(null)
         private set
     var isShowDialog by mutableStateOf(false)
         private set
@@ -232,8 +233,12 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         showDialog(text, isAppend = false, isDialogCloseable = true)
     }
 
-    fun showPicture(picture: File?) {
-        windowShowPicture = picture
+    fun showPicture(picture: Any?) {
+        windowShowPicture = when (picture) {
+            is File -> picture
+            is String -> picture
+            else -> null
+        }
     }
 
     fun isInputValid(): Boolean {
@@ -256,6 +261,17 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
 
 
         ObsUtil.initObsClient(controlState.obsAk, controlState.obsSk, controlState.obsEndpoint, changeConfig)
+    }
+
+    fun updateImageLoadConfig() {
+        scope.launch(Dispatchers.IO) {
+            dataStore.edit { mutablePreferences ->
+                mutablePreferences[DataKey.IMAGE_REFERER_URL] = controlState.imageRefererUrl
+                mutablePreferences[DataKey.ENABLE_IMAGE_REFERER] = controlState.enableImageReferer
+            }
+
+            showDialog("图片加载配置已保存！重启后生效", isAppend = false, isDialogCloseable = true)
+        }
     }
 
     fun onStartProgress() {
@@ -395,6 +411,13 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 controlState.isAutoCreateFolder = preferences[DataKey.IS_AUTO_CREATE_FOLDER] ?: false
                 controlState.timeZoneFilter.setValue(preferences[DataKey.TIME_ZONE] ?: DefaultValue.DEFAULT_TIME_ZONE)
                 controlState.maxHeight.setValue((preferences[DataKey.ZOOM_MAX_HEIGHT] ?: 0).toString())
+                
+                // 加载图片加载配置
+                controlState.imageRefererUrl = preferences[DataKey.IMAGE_REFERER_URL] ?: ""
+                controlState.enableImageReferer = preferences[DataKey.ENABLE_IMAGE_REFERER] ?: false
+                
+                // 加载缓存大小信息
+                updateCacheSizeInfo()
             }
         }
     }
@@ -427,6 +450,26 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     fun reorderPicture(fromIndex: Int, toIndex: Int) {
         pictureFileList.apply {
             add(toIndex, removeAt(fromIndex))
+        }
+    }
+
+    /**
+     * 更新缓存大小信息
+     */
+    fun updateCacheSizeInfo() {
+        scope.launch(Dispatchers.IO) {
+            controlState.imageCacheSize = ImageUtil.getImageCacheSize()
+        }
+    }
+    
+    /**
+     * 清除图片缓存
+     */
+    fun clearImageCache() {
+        scope.launch(Dispatchers.IO) {
+            ImageUtil.clearImageCache()
+            updateCacheSizeInfo()
+            showDialog("缓存已清除", isAppend = false, isDialogCloseable = true)
         }
     }
 }

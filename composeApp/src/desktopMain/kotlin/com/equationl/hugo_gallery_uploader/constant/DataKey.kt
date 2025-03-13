@@ -13,4 +13,8 @@ object DataKey {
     val OBS_ENDPOINT = stringPreferencesKey("OBS_ENDPOINT")
     val IS_AUTO_CREATE_FOLDER = booleanPreferencesKey("IS_AUTO_CREATE_FOLDER")
     val ZOOM_MAX_HEIGHT = intPreferencesKey("ZOOM_MAX_HEIGHT")
+    
+    // 图片加载设置
+    val IMAGE_REFERER_URL = stringPreferencesKey("IMAGE_REFERER_URL")
+    val ENABLE_IMAGE_REFERER = booleanPreferencesKey("ENABLE_IMAGE_REFERER")
 }

@@ -28,9 +28,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.rounded.CopyAll
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +48,7 @@ import coil3.request.crossfade
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
 import com.equationl.hugo_gallery_uploader.state.ImgListItemType
 import com.equationl.hugo_gallery_uploader.state.toggleImgListItemType
+import com.equationl.hugo_gallery_uploader.util.ImageUtil
 import com.equationl.hugo_gallery_uploader.util.Util.copyToClipboard
 import com.equationl.hugo_gallery_uploader.util.legalSuffixList
 import com.equationl.hugo_gallery_uploader.widget.dragHandle
@@ -98,19 +101,33 @@ fun ImageContent(
                         .fillMaxSize()
                         .weight(1f)
                 ) {
+                    val currentPicture = applicationState.pictureFileList[state.showImageIndex.coerceAtMost(applicationState.pictureFileList.lastIndex)]
+                    val imageData = if (currentPicture.file.exists()) {
+                        currentPicture.file
+                    } else if (!currentPicture.remoteUrl.isNullOrBlank()) {
+                        currentPicture.remoteUrl
+                    } else {
+                        null
+                    }
+                    
                     AsyncImage(
                         model = ImageRequest.Builder(PlatformContext.INSTANCE)
-                            .data(applicationState.pictureFileList[state.showImageIndex.coerceAtMost(applicationState.pictureFileList.lastIndex)].file,)
+                            .data(imageData)
                             .crossfade(true)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
                             .clickable {
-                                applicationState.showPicture(applicationState.pictureFileList[state.showImageIndex.coerceAtMost(applicationState.pictureFileList.lastIndex)].file)
+                                applicationState.showPicture(imageData)
                             },
                         contentScale = ContentScale.Fit,
-                        placeholder = rememberVectorPainter(Icons.Outlined.Download)
+                        placeholder = rememberVectorPainter(Icons.Outlined.Download),
+                        error = rememberVectorPainter(Icons.Outlined.Error),
+                        imageLoader = ImageUtil.globalImageLoader,
+                        onError = {
+                            println(it.result.throwable.stackTraceToString())
+                        }
                     )
                 }
 
@@ -183,19 +200,29 @@ fun ImageContent(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     if (state.listItemType == ImgListItemType.IMAGE) {
+                                        val imageData = if (pictureModel.file.exists()) {
+                                            pictureModel.file
+                                        } else if (!pictureModel.remoteUrl.isNullOrBlank()) {
+                                            pictureModel.remoteUrl
+                                        } else {
+                                            null
+                                        }
+                                        
                                         AsyncImage(
                                             model = ImageRequest.Builder(PlatformContext.INSTANCE)
-                                                .data(pictureModel.file)
+                                                .data(imageData)
                                                 .crossfade(true)
                                                 .build(),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(150.dp)
                                                 .clickable {
-                                                    applicationState.showPicture(pictureModel.file)
+                                                    applicationState.showPicture(imageData)
                                                 },
                                             contentScale = ContentScale.Inside,
-                                            placeholder = rememberVectorPainter(Icons.Outlined.Download)
+                                            placeholder = rememberVectorPainter(Icons.Outlined.Download),
+                                            error = rememberVectorPainter(Icons.Outlined.Error),
+                                            imageLoader = ImageUtil.globalImageLoader
                                         )
                                     }
 
@@ -215,6 +242,19 @@ fun ImageContent(
                                         modifier = Modifier.weight(0.2f)
                                     ) {
 
+                                        if (!pictureModel.file.exists()) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Warning,
+                                                contentDescription = "文件已删除",
+                                                tint = Color.Red,
+                                                modifier = Modifier.clickable {
+                                                    applicationState.showDialog("本地文件已删除：${pictureModel.file.path}", isAppend = false, isDialogCloseable = true)
+                                                }
+                                            )
+                                            
+                                            Spacer(Modifier.width(4.dp))
+                                        }
+
                                         if (state.listItemType == ImgListItemType.TEXT) {
                                             if (!pictureModel.remoteUrl.isNullOrBlank()) {
                                                 Icon(
@@ -226,6 +266,8 @@ fun ImageContent(
                                                         applicationState.showDialog("已复制链接：\n${pictureModel.remoteUrl!!}", isAppend = false, isDialogCloseable = true)
                                                     }
                                                 )
+                                                
+                                                Spacer(Modifier.width(4.dp))
                                             }
 
                                             if (pictureModel.shotDate != null) {
@@ -237,6 +279,8 @@ fun ImageContent(
                                                         applicationState.showPictureDetail(pictureModel)
                                                     }
                                                 )
+                                                
+                                                Spacer(Modifier.width(4.dp))
                                             }
 
                                             Icon(
@@ -265,6 +309,8 @@ fun ImageContent(
                                                     )
                                                 }
                                             )
+                                            
+                                            Spacer(Modifier.width(4.dp))
 
 
                                             Icon(
