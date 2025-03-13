@@ -61,5 +61,10 @@ compose.desktop {
                 bundleID = "com.likehide.hugo_gallery_uploader"
             }
         }
+
+        buildTypes.release.proguard {
+            // isEnabled = true
+            configurationFiles.from(project.file("proguard-rules.pro"))
+        }
     }
 }
