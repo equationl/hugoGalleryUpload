@@ -61,7 +61,23 @@ object UploadHistoryUtil {
     private fun File.toUploadHistoryModel(): UploadHistoryModel {
         val title = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(nameWithoutExtension.toLongOrNull() ?: 0)
 
-        return UploadHistoryModel(name, path, title)
+        // 只计算图片数量，而不是加载完整的对象列表
+        var totalCount = 0
+        var uploadedCount = 0
+        
+        try {
+            if (exists()) {
+                val text = readText()
+                val list = text.fromJsonList(PictureModel::class.java) ?: emptyList()
+                totalCount = list.size
+                uploadedCount = list.count { !it.remoteUrl.isNullOrBlank() }
+                println("从历史文件加载了统计数据: 总图片 $totalCount 张，其中已上传 $uploadedCount 张")
+            }
+        } catch (e: Exception) {
+            println("读取历史图片数据失败: ${e.message}")
+        }
+
+        return UploadHistoryModel(name, path, title, totalCount, uploadedCount)
     }
 
 
