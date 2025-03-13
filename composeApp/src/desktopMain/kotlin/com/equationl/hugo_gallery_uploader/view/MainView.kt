@@ -25,7 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
+import androidx.compose.ui.window.rememberDialogState
 import com.equationl.hugo_gallery_uploader.model.PictureModel
 import com.equationl.hugo_gallery_uploader.state.ApplicationState
 import com.equationl.hugo_gallery_uploader.util.dropAndDragTarget
@@ -83,10 +84,11 @@ fun MainView(applicationState: ApplicationState) {
     }
 
     if (applicationState.isShowDialog) {
-        Dialog(
+        DialogWindow(
             onCloseRequest = { applicationState.closeDialog() },
             title = if (applicationState.isDialogCloseable) "处理完成" else "处理中",
-            resizable = false
+            resizable = false,
+            state = rememberDialogState(width = 600.dp, height = 400.dp)
         ) {
             Box {
                 Column(
@@ -110,10 +112,11 @@ fun MainView(applicationState: ApplicationState) {
     }
 
     if (applicationState.isShowInputDialog) {
-        Dialog(
+        DialogWindow(
             onCloseRequest = { applicationState.closeInputDialog() },
             title = applicationState.inputDialogTitle,
-            resizable = false
+            resizable = false,
+            state = rememberDialogState(width = 400.dp, height = 200.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(8.dp),
@@ -147,10 +150,11 @@ fun MainView(applicationState: ApplicationState) {
     }
 
     if (applicationState.isShowConfirmDialog) {
-        Dialog(
+        DialogWindow(
             onCloseRequest = { applicationState.closeConfirmDialog() },
             title = "提示",
-            resizable = false
+            resizable = false,
+            state = rememberDialogState(width = 400.dp, height = 200.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(8.dp),

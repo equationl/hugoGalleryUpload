@@ -8,18 +8,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import org.jetbrains.skia.Image
 import java.io.File
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -52,10 +58,7 @@ fun ShowImgView(
         contentAlignment = Alignment.Center
     ) {
         Image(
-            bitmap = img
-                .inputStream()
-                .buffered()
-                .use(::loadImageBitmap),
+            bitmap = remember(img) { Image.makeFromEncoded(img.readBytes()).toComposeImageBitmap() },
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier
