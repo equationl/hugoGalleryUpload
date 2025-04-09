@@ -49,7 +49,7 @@ compose.desktop {
             modules("java.management")
 
             packageName = "HugoGalleryUploader"
-            packageVersion = "1.1.0"
+            packageVersion = "1.1.1"
             copyright = "© 2025 likehide.com. All rights reserved."
             vendor = "equationl"
 
