@@ -11,3 +11,5 @@
 -keep class org.apache.logging.log4j.** { *; }
 
 -keep class com.obs.** { *; }
+
+-keep class com.drew.imaging.** { *; }
