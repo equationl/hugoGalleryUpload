@@ -68,9 +68,15 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     var confirmDialogContent by mutableStateOf("请输入")
         private set
 
+    // 是否跳过删除确认对话框（仅在当前会话有效）
+    var skipDeleteConfirmation by mutableStateOf(false)
+        private set
+
 
     var onInputDialogConfirm: (() -> Unit)? = null
     var onConfirmDialogConfirm: (() -> Unit)? = null
+    // 确认对话框的勾选框状态改变回调
+    var onConfirmDialogCheckboxChange: ((Boolean) -> Unit)? = null
 
 
     fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -91,6 +97,17 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
 
                 40 -> { // 向下箭头
                     plusImgIndex()
+                }
+                
+                8, 46 -> { // Backspace 或 Delete 键
+                    if (pictureFileList.isNotEmpty() && imgPreviewState.showImageIndex >= 0 && imgPreviewState.showImageIndex < pictureFileList.size) {
+                        if (skipDeleteConfirmation) {
+                            onDelImg(imgPreviewState.showImageIndex)
+                        } else {
+                            showDeleteConfirmDialog(imgPreviewState.showImageIndex)
+                        }
+                        return true
+                    }
                 }
             }
         }
@@ -210,6 +227,19 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     fun showConfirmDialog(content: String, onConfirmDialogConfirm: (() -> Unit)? = null) {
         this.onConfirmDialogConfirm = onConfirmDialogConfirm
         confirmDialogContent = content
+        isShowConfirmDialog = true
+    }
+
+    fun showDeleteConfirmDialog(index: Int) {
+        val fileName = pictureFileList[index].file.name
+        this.onConfirmDialogConfirm = {
+            onConfirmDialogCheckboxChange = null
+            onDelImg(index)
+        }
+        this.onConfirmDialogCheckboxChange = { checked ->
+            skipDeleteConfirmation = checked
+        }
+        confirmDialogContent = "确定要删除图片 \"$fileName\" 吗？"
         isShowConfirmDialog = true
     }
 
