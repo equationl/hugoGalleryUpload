@@ -4,6 +4,11 @@ on:
   release:
     types: [published, created]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: '发布的标签名称 (例如: v1.0.0)'
+        required: true
+        type: string
 
 jobs:
   build-windows:
@@ -29,7 +34,10 @@ jobs:
           ./gradlew --version
       
       - name: Build Windows Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS --no-daemon --info --stacktrace -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m"
+        run: |
+          ./gradlew --no-daemon --info --stacktrace packageReleaseDistributionForCurrentOS
+        env:
+          GRADLE_OPTS: "-Xmx2g -XX:MaxMetaspaceSize=512m"
       
       - name: Find Build Artifacts
         run: |
@@ -46,6 +54,7 @@ jobs:
       - name: Upload Windows Artifacts
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
           files: |
             composeApp/build/compose/binaries/main-release/msi/*.msi
             composeApp/build/compose/binaries/desktop/app/msi/HugoGalleryUploader-*.msi
@@ -93,6 +102,7 @@ jobs:
       - name: Upload macOS Artifacts
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
           files: |
             composeApp/build/compose/binaries/main-release/dmg/*.dmg
             composeApp/build/compose/binaries/desktop/app/dmg/HugoGalleryUploader-*.dmg
@@ -140,5 +150,6 @@ jobs:
       - name: Upload Linux Artifacts
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
           files: |
             composeApp/build/compose/binaries/main-release/deb/*.deb 
