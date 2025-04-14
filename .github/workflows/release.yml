@@ -41,26 +41,48 @@ jobs:
         run: |
           ./gradlew --no-daemon --info --stacktrace packageReleaseDistributionForCurrentOS
         env:
-          GRADLE_OPTS: "-Xmx2g -XX:MaxMetaspaceSize=512m"
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
       
       - name: Find Build Artifacts
         run: |
           echo "Searching for build artifacts:"
-          dir composeApp\build\compose\binaries /s /b | findstr ".msi$"
+          Get-ChildItem -Path composeApp\build\compose\binaries -Recurse -Filter "*.msi"
       
       - name: List Build Output
         run: |
           echo "Build output directory (desktop/app):"
-          dir composeApp\build\compose\binaries\desktop\app\msi\ || echo "Directory not found"
+          if (Test-Path composeApp\build\compose\binaries\desktop\app\msi) {
+            Get-ChildItem composeApp\build\compose\binaries\desktop\app\msi
+          } else {
+            echo "Directory not found"
+          }
+          
           echo "Build output directory (main-release):"
-          dir composeApp\build\compose\binaries\main-release\msi\ || echo "Directory not found"
+          if (Test-Path composeApp\build\compose\binaries\main-release\msi) {
+            Get-ChildItem composeApp\build\compose\binaries\main-release\msi
+          } else {
+            echo "Directory not found"
+          }
+      
+      - name: Rename Windows Artifacts
+        run: |
+          $artifactsDir = "release-artifacts"
+          New-Item -Path $artifactsDir -ItemType Directory -Force
+          
+          $files = Get-ChildItem -Path composeApp\build\compose\binaries -Recurse -Filter "*.msi"
+          foreach ($file in $files) {
+            $newName = "HugoGalleryUploader-Windows-" + $file.Name
+            Copy-Item $file.FullName -Destination (Join-Path $artifactsDir $newName)
+          }
+          
+          Get-ChildItem $artifactsDir
       
       - name: Upload Windows Artifacts
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
           files: |
-            composeApp/build/compose/binaries/main-release/msi/*.msi
+            release-artifacts/HugoGalleryUploader-Windows-*.msi
   
   build-macos:
     runs-on: macos-latest
@@ -102,11 +124,20 @@ jobs:
           echo "Build output directory (main-release):"
           ls -la composeApp/build/compose/binaries/main-release/dmg/ || echo "Directory not found"
       
+      - name: Rename macOS Artifacts
+        run: |
+          mkdir -p release-artifacts
+          for f in composeApp/build/compose/binaries/main-release/dmg/*.dmg; do
+            filename=$(basename "$f")
+            cp "$f" "release-artifacts/HugoGalleryUploader-macOS-${filename}"
+          done
+          ls -la release-artifacts
+      
       - name: Upload macOS Artifacts
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
-          files: composeApp/build/compose/binaries/main-release/dmg/*.dmg
+          files: release-artifacts/HugoGalleryUploader-macOS-*.dmg
   
   build-linux:
     runs-on: ubuntu-latest
@@ -148,8 +179,17 @@ jobs:
           echo "Build output directory (main-release):"
           ls -la composeApp/build/compose/binaries/main-release/deb/ || echo "Directory not found"
       
+      - name: Rename Linux Artifacts
+        run: |
+          mkdir -p release-artifacts
+          for f in composeApp/build/compose/binaries/main-release/deb/*.deb; do
+            filename=$(basename "$f")
+            cp "$f" "release-artifacts/HugoGalleryUploader-Linux-${filename}"
+          done
+          ls -la release-artifacts
+      
       - name: Upload Linux Artifacts
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.release.tag_name || github.event.inputs.tag_name }}
-          files: composeApp/build/compose/binaries/main-release/deb/*.deb 
+          files: release-artifacts/HugoGalleryUploader-Linux-*.deb 
