@@ -8,6 +8,7 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -28,21 +29,30 @@ jobs:
           ./gradlew --version
       
       - name: Build Windows Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS --info --stacktrace
+        run: ./gradlew packageReleaseDistributionForCurrentOS --no-daemon --info --stacktrace -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m"
+      
+      - name: Find Build Artifacts
+        run: |
+          echo "Searching for build artifacts:"
+          dir composeApp\build\compose\binaries /s /b | findstr ".msi$"
       
       - name: List Build Output
         run: |
-          echo "Build output directory:"
-          dir composeApp\build\compose\binaries\desktop\app\msi\
+          echo "Build output directory (desktop/app):"
+          dir composeApp\build\compose\binaries\desktop\app\msi\ || echo "Directory not found"
+          echo "Build output directory (main-release):"
+          dir composeApp\build\compose\binaries\main-release\msi\ || echo "Directory not found"
       
       - name: Upload Windows Artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            composeApp/build/compose/binaries/main-release/msi/*.msi
             composeApp/build/compose/binaries/desktop/app/msi/HugoGalleryUploader-*.msi
   
   build-macos:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -66,21 +76,30 @@ jobs:
         run: chmod +x ./gradlew
       
       - name: Build macOS Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS --info --stacktrace
+        run: ./gradlew packageReleaseDistributionForCurrentOS --no-daemon --info --stacktrace
+      
+      - name: Find Build Artifacts
+        run: |
+          echo "Searching for build artifacts:"
+          find composeApp/build/compose/binaries -name "*.dmg" -type f
       
       - name: List Build Output
         run: |
-          echo "Build output directory:"
-          ls -la composeApp/build/compose/binaries/desktop/app/dmg/
+          echo "Build output directory (desktop/app):"
+          ls -la composeApp/build/compose/binaries/desktop/app/dmg/ || echo "Directory not found"
+          echo "Build output directory (main-release):"
+          ls -la composeApp/build/compose/binaries/main-release/dmg/ || echo "Directory not found"
       
       - name: Upload macOS Artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            composeApp/build/compose/binaries/main-release/dmg/*.dmg
             composeApp/build/compose/binaries/desktop/app/dmg/HugoGalleryUploader-*.dmg
   
   build-linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -104,15 +123,22 @@ jobs:
         run: chmod +x ./gradlew
       
       - name: Build Linux Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS --info --stacktrace
+        run: ./gradlew packageReleaseDistributionForCurrentOS --no-daemon --info --stacktrace
+      
+      - name: Find Build Artifacts
+        run: |
+          echo "Searching for build artifacts:"
+          find composeApp/build/compose/binaries -name "*.deb" -type f
       
       - name: List Build Output
         run: |
-          echo "Build output directory:"
-          ls -la composeApp/build/compose/binaries/desktop/app/deb/
+          echo "Build output directory (desktop/app):"
+          ls -la composeApp/build/compose/binaries/desktop/app/deb/ || echo "Directory not found"
+          echo "Build output directory (main-release):"
+          ls -la composeApp/build/compose/binaries/main-release/deb/ || echo "Directory not found"
       
       - name: Upload Linux Artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            composeApp/build/compose/binaries/desktop/app/deb/hugoGalleryUploader_*.deb 
+            composeApp/build/compose/binaries/main-release/deb/*.deb 
