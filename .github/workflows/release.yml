@@ -2,7 +2,7 @@ name: Release Build
 
 on:
   release:
-    types: [published]
+    types: [published, created]
   workflow_dispatch:
 
 jobs:
@@ -19,8 +19,21 @@ jobs:
           java-version: '17'
           cache: gradle
       
+      - name: Show Environment Info
+        run: |
+          java -version
+          echo "Workspace directory:"
+          dir
+          echo "Gradle version:"
+          ./gradlew --version
+      
       - name: Build Windows Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS
+        run: ./gradlew packageReleaseDistributionForCurrentOS --info --stacktrace
+      
+      - name: List Build Output
+        run: |
+          echo "Build output directory:"
+          dir composeApp\build\compose\binaries\desktop\app\msi\
       
       - name: Upload Windows Artifacts
         uses: softprops/action-gh-release@v1
@@ -41,8 +54,24 @@ jobs:
           java-version: '17'
           cache: gradle
       
+      - name: Show Environment Info
+        run: |
+          java -version
+          echo "Workspace directory:"
+          ls -la
+          echo "Gradle version:"
+          ./gradlew --version || true
+      
+      - name: Set Gradle Wrapper Permissions
+        run: chmod +x ./gradlew
+      
       - name: Build macOS Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS
+        run: ./gradlew packageReleaseDistributionForCurrentOS --info --stacktrace
+      
+      - name: List Build Output
+        run: |
+          echo "Build output directory:"
+          ls -la composeApp/build/compose/binaries/desktop/app/dmg/
       
       - name: Upload macOS Artifacts
         uses: softprops/action-gh-release@v1
@@ -63,8 +92,24 @@ jobs:
           java-version: '17'
           cache: gradle
       
+      - name: Show Environment Info
+        run: |
+          java -version
+          echo "Workspace directory:"
+          ls -la
+          echo "Gradle version:"
+          ./gradlew --version || true
+      
+      - name: Set Gradle Wrapper Permissions
+        run: chmod +x ./gradlew
+      
       - name: Build Linux Release
-        run: ./gradlew packageReleaseDistributionForCurrentOS
+        run: ./gradlew packageReleaseDistributionForCurrentOS --info --stacktrace
+      
+      - name: List Build Output
+        run: |
+          echo "Build output directory:"
+          ls -la composeApp/build/compose/binaries/desktop/app/deb/
       
       - name: Upload Linux Artifacts
         uses: softprops/action-gh-release@v1
